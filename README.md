@@ -26,10 +26,11 @@ A collection of lightweight Bash and Python security utilities built for log par
 
 Clone the repository and set execution permissions inside your lab environment:
 
-bash
+```bash
 git clone [https://github.com/CyberS-Coder/linux-security-toolkit.git](https://github.com/CyberS-Coder/linux-security-toolkit.git)
 cd linux-security-toolkit
-chmod +x *.sh *.py
+chmod +x *.sh *.py```
+
 
 💻 Usage & Examples1. Basic SSH Log Analysis (Bash)
 sudo ./ssh_analyser.sh
