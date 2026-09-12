@@ -37,8 +37,22 @@ except:
     exit(1)
 
 print(f"Scanning target IP of: {target}")
-first_port = int(input("Start port: "))
-last_port = int(input("End port: "))
+
+try:
+    first_port = int(input("Enter start port (1-65535): "))
+    last_port = int(input("Enter end port (1-65535): "))
+except ValueError:
+    print("Error: Port numbers must be valid integers.")
+    exit(1)
+
+# Validate port ranges
+if not (1 <= first_port <= 65535) or not (1 <= last_port <= 65535):
+    print("Error: Port numbers must be between 1 and 65535.")
+    exit(1)
+
+if first_port > last_port:
+    print("Error: Start port cannot be greater than end port.")
+    exit(1)
 
 with ThreadPoolExecutor(max_workers=50) as executor:
     executor.map(port_scan, range(first_port, last_port+1))
