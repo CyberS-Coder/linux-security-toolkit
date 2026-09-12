@@ -2,7 +2,7 @@
 
 A collection of lightweight Bash and Python security utilities built for log parsing, network reconnaissance, and threat mitigation on Linux systems.
 
-This repository demonstrates practical systems administration, text-processing pipelines, network socket programming, and defensive security concepts.
+This repository demonstrates practical systems administration, text-processing pipelines, network socket programming, and concurrency optimization.
 
 ---
 
@@ -13,7 +13,8 @@ This repository demonstrates practical systems administration, text-processing p
 | `ssh_analyser.sh` | Bash | Parses `systemd` journal logs to extract and sort failed SSH login attempts. | `journalctl`, `awk`, `uniq -c`, `sort -nr` |
 | `ssh_analyser_v2.sh` | Bash | Filters failed login attempts dynamically based on a user-defined threshold. | Parameter expansion `${1:-1}`, `awk -v` variable passing |
 | `generate_blacklist.sh` | Bash | Isolates malicious IP addresses exceeding a failure threshold and exports a clean blocklist. | File redirection `>`, stdout pipelines, root check (`$EUID`) |
-| `py_scanner.py` | Python 3 | Performs TCP port scanning, domain resolution, and service banner grabbing. | `socket.AF_INET`, `socket.SOCK_STREAM`, `gethostbyname()`, `connect_ex()`, `recv()` |
+| `py_scanner.py` | Python 3 | Sequential TCP port scanner with domain resolution and service banner grabbing. | `socket.AF_INET`, `socket.SOCK_STREAM`, `gethostbyname()`, `connect_ex()`, `recv()` |
+| `py_scanner_v2.py` | Python 3 | High-speed **multithreaded** TCP port scanner utilizing a thread pool for concurrent port checks. | `concurrent.futures.ThreadPoolExecutor`, `executor.map()`, worker functions |
 
 ---
 
@@ -24,8 +25,7 @@ Clone the repository and set execution permissions:
 ```bash
 git clone [https://github.com/CyberS-Coder/linux-security-toolkit.git](https://github.com/CyberS-Coder/linux-security-toolkit.git)
 cd linux-security-toolkit
-chmod +x *.sh py_scanner.py
-
+chmod +x *.sh py_scanner.py py_scanner_v2.py
 💻 Usage & Examples
 1. Basic SSH Log Analysis (Bash)
 Bash
@@ -38,23 +38,22 @@ sudo ./ssh_analyser_v2.sh 5
 Bash
 # Extract IPs with 3 or more failed attempts to blacklisted_ips.txt
 sudo ./generate_blacklist.sh 3
-4. Interactive TCP Port Scanner & Banner Grabber (Python)
+4. Sequential Port Scanner (Python v1)
 Bash
 python3 py_scanner.py
-Inputs: Target IP/Domain (e.g., 127.0.0.1 or scanme.nmap.org), start port, end port.
-
-Output: Identifies open TCP ports and prints service version banners (e.g., OpenSSH_8.9p1).
+5. Multithreaded High-Speed Port Scanner & Banner Grabber (Python v2)
+Bash
+python3 py_scanner_v2.py
+Performance Gain: Utilizes ThreadPoolExecutor(max_workers=50) to scan hundreds of ports concurrently, reducing scan times from minutes to seconds.
 
 🔬 Systems & Security Concepts Demonstrated
 Telemetry & Log Analysis: Transforming unstructured systemd logs (journalctl) into actionable threat intelligence using Unix text-processing pipelines.
 
-Access Control & Safety Checks: Enforcing execution safety by validating Effective User ID ($EUID == 0) before reading restricted logs.
+Network Concurrency: Leveraging Python's concurrent.futures to transform I/O-bound sequential bottlenecks into efficient multi-worker thread pools.
 
 Network Socket Programming: Interfacing directly with the OS network stack via Python's socket library to execute TCP handshakes (SOCK_STREAM).
 
 Service Fingerprinting: Banner grabbing via socket data retrieval (recv()) to identify running software versions on open ports.
-
-DNS Resolution & Error Handling: Resolving hostnames dynamically (gethostbyname()) and handling network exceptions (gaierror) gracefully.
 
 👨‍💻 Author
 GitHub: @CyberS-Coder
