@@ -19,6 +19,8 @@ A collection of lightweight Bash and Python security utilities built for log par
 | `generate_blacklist.sh` | Bash | Isolates malicious IP addresses exceeding a failure threshold and exports a clean blocklist. | File redirection `>`, stdout pipelines, root check (`$EUID`) |
 | `ports_scanner.py` | Python 3 | Interactive TCP port scanner with input validation, domain resolution, and service banner grabbing. | `socket.AF_INET`, `socket.SOCK_STREAM`, `gethostbyname()`, `connect_ex()`, `recv()` |
 | `ports_scanner_v2.py` | Python 3 | High-speed **multithreaded** TCP port scanner utilizing a thread pool for concurrent port checks. | `concurrent.futures.ThreadPoolExecutor`, `executor.map()`, input validation |
+| `fim.py` | Python 3 | Prototype File Integrity Monitor tracking system changes using cryptographic hashing. | `hashlib.sha256`, chunk-based binary reading, JSON persistence |
+| `fim_v2.py` | Python 3 | Advanced FIM featuring recursive directory traversal and isolated path-sanitized baselines. | `os.walk`, dynamic path resolution, multi-target state management |
 
 ---
 
@@ -63,6 +65,13 @@ python3 ports_scanner.py
 python3 ports_scanner_v2.py
 ```
 * **Performance Gain:** Utilizes `ThreadPoolExecutor(max_workers=50)` to scan hundreds of ports concurrently, reducing scan times from minutes to seconds.
+
+## 📈 Engineering Evolution: File Integrity Monitor (FIM)
+
+To demonstrate iterative problem-solving and defensive software design, this toolkit includes two evolutionary phases of a Python File Integrity Monitor:
+
+* **Version 1 (`fim.py`):** Built to establish core cryptographic hashing (SHA-256) with chunk-based binary reading, error handling (`PermissionError`, `FileNotFoundError`), and basic JSON disk persistence.
+* **Version 2 (`fim_v2.py`):** Refactored to solve real-world operational bottlenecks. Replaced hardcoded paths with dynamic user input and recursive directory walking (`os.walk`) to audit entire folder trees. Solved state-management collision bugs by introducing path-sanitized dynamic JSON baselines (`baseline_<path>.json`), enabling independent, multi-target monitoring without cross-contamination.
 
 ---
 
