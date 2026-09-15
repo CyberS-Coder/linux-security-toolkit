@@ -33,6 +33,9 @@ linux-security-toolkit/
 │   ├── ports_scanner_v3.py
 │   └── ssh_analyser_v1.sh
 │
+├── docs/
+│   └── design-decisions.md
+│
 └── tests/
     └── test_file_integrity.py
 ```
@@ -62,27 +65,52 @@ chmod +x src/*.sh src/*.py
 
 ---
 
-## 💻 Usage & Examples
+## 💻 Usage & Sample Outputs
 
 ### 1. SSH Log Analysis (Bash)
 ```bash
 sudo ./src/ssh_analyser.sh 5
+```
+**Sample Output:**
+```text
+Analyzing systemd journal logs for failed SSH authentication attempts...
+Threshold filter set to: >= 5 failures
+
+Failed Count | Source IP Address
+--------------------------------
+14           | 192.168.1.105
+8            | 10.0.0.42
 ```
 
 ### 2. Multithreaded Port Scanner (Python CLI)
 ```bash
 python3 src/port_scanner.py --target 127.0.0.1 --ports 1-1024 --workers 50
 ```
+**Sample Output:**
+```text
+Scanning target 127.0.0.1 (127.0.0.1) on ports 1-1024...
+Port 22    OPEN | Service Banner: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6
+Port 80    OPEN | Service Banner: HTTP/1.1 200 OK
+Scan complete. Checked 1024 ports across 50 workers.
+```
 
 ### 3. File Integrity Monitoring (Python CLI)
 * **Generate initial baseline:**
   ```bash
-  python3 src/file_integrity.py --target /etc/ssh/sshd_config --baseline baseline.json --init
+  python3 src/file_integrity.py --target /etc/ssh --baseline baseline.json --init
   ```
 * **Verify system file integrity:**
   ```bash
-  python3 src/file_integrity.py --target /etc/ssh/sshd_config --baseline baseline.json --check
+  python3 src/file_integrity.py --target /etc/ssh --baseline baseline.json --check
   ```
+**Sample Output:**
+```text
+Verifying integrity of target path: /etc/ssh
+OK: /etc/ssh/sshd_config
+ALERT!: MODIFIED FILE -> /etc/ssh/ssh_config
+ALERT!: NEW UNTRACKED FILE ADDED -> /etc/ssh/backdoor.key
+ALERT!: MISSING FILE -> /etc/ssh/moduli
+```
 
 ---
 
@@ -103,7 +131,7 @@ python3 src/port_scanner.py --target 127.0.0.1 --ports 1-1024 --workers 50
 To demonstrate iterative problem-solving and software maintenance, early prototypes are archived in `prototypes/`. 
 * **Phase 1:** Built baseline functional scripts using procedural logic and interactive prompts.
 * **Phase 2:** Upgraded utilities to support concurrency (`ThreadPoolExecutor`), recursive traversal (`os.walk`), path-sanitized state isolation, and standardized CLI interaction (`argparse`).
-* **Phase 3:** Added automated test coverage (`tests/test_file_integrity.py`) to verify hash consistency and edge-case failure handling.
+* **Phase 3:** Added automated test coverage (`tests/test_file_integrity.py`) and CI integration via GitHub Actions.
 
 ---
 
