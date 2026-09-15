@@ -19,19 +19,19 @@ linux-security-toolkit/
 ├── .gitignore
 │
 ├── src/
-│   ├── fim_v3.py
+│   ├── file_integrity.py
 │   ├── generate_blacklist.sh
-│   ├── ports_scanner_v4.py
+│   ├── port_scanner.py
 │   ├── py_scanner.py
-│   └── ssh_analyser_v2.sh
+│   └── ssh_analyser.sh
 │
 ├── prototypes/
-│   ├── fim.py
+│   ├── fim_v1.py
 │   ├── fim_v2.py
-│   ├── ports_scanner.py
+│   ├── ports_scanner_v1.py
 │   ├── ports_scanner_v2.py
 │   ├── ports_scanner_v3.py
-│   └── ssh_analyser.sh
+│   └── ssh_analyser_v1.sh
 │
 └── tests/
     └── test_file_integrity.py
@@ -43,10 +43,10 @@ linux-security-toolkit/
 
 | Utility | Language | Purpose | Key Technical Mechanics |
 | :--- | :--- | :--- | :--- |
-| `ssh_analyser_v2.sh` | Bash | Filters failed login attempts dynamically based on a user-defined threshold. | Parameter expansion `${1:-1}`, `awk -v` variable passing |
+| `ssh_analyser.sh` | Bash | Filters failed login attempts dynamically based on a user-defined threshold. | Parameter expansion `${1:-1}`, `awk -v` variable passing |
 | `generate_blacklist.sh` | Bash | Isolates IP addresses exceeding a failure threshold and exports a candidate review list. | File redirection `>`, stdout pipelines, root check (`$EUID`) |
-| `ports_scanner_v4.py` / `py_scanner.py` | Python 3 | Advanced multithreaded TCP port scanners with CLI arguments and banner grabbing. | `argparse`, `ThreadPoolExecutor`, `socket` |
-| `fim_v3.py` | Python 3 | Advanced File Integrity Monitor (FIM) tracking modifications, deletions, and added files. | `hashlib.sha256`, `os.walk`, `argparse`, JSON baseline serialization |
+| `port_scanner.py` / `py_scanner.py` | Python 3 | Advanced multithreaded TCP port scanners with CLI arguments and banner grabbing. | `argparse`, `ThreadPoolExecutor`, `socket` |
+| `file_integrity.py` | Python 3 | Advanced File Integrity Monitor (FIM) tracking modifications, deletions, and added files. | `hashlib.sha256`, `os.walk`, `argparse`, JSON baseline serialization |
 
 ---
 
@@ -66,22 +66,22 @@ chmod +x src/*.sh src/*.py
 
 ### 1. SSH Log Analysis (Bash)
 ```bash
-sudo ./src/ssh_analyser_v2.sh 5
+sudo ./src/ssh_analyser.sh 5
 ```
 
 ### 2. Multithreaded Port Scanner (Python CLI)
 ```bash
-python3 src/ports_scanner_v4.py --target 127.0.0.1 --ports 1-1024 --workers 50
+python3 src/port_scanner.py --target 127.0.0.1 --ports 1-1024 --workers 50
 ```
 
 ### 3. File Integrity Monitoring (Python CLI)
 * **Generate initial baseline:**
   ```bash
-  python3 src/fim_v3.py --target /etc/ssh/sshd_config --baseline baseline.json --init
+  python3 src/file_integrity.py --target /etc/ssh/sshd_config --baseline baseline.json --init
   ```
 * **Verify system file integrity:**
   ```bash
-  python3 src/fim_v3.py --target /etc/ssh/sshd_config --baseline baseline.json --check
+  python3 src/file_integrity.py --target /etc/ssh/sshd_config --baseline baseline.json --check
   ```
 
 ---
@@ -103,7 +103,7 @@ python3 src/ports_scanner_v4.py --target 127.0.0.1 --ports 1-1024 --workers 50
 To demonstrate iterative problem-solving and software maintenance, early prototypes are archived in `prototypes/`. 
 * **Phase 1:** Built baseline functional scripts using procedural logic and interactive prompts.
 * **Phase 2:** Upgraded utilities to support concurrency (`ThreadPoolExecutor`), recursive traversal (`os.walk`), path-sanitized state isolation, and standardized CLI interaction (`argparse`).
-* **Phase 3:** Added automated test coverage (`tests/test_file_integrity.py`) to verify hash consistency and failure handling.
+* **Phase 3:** Added automated test coverage (`tests/test_file_integrity.py`) to verify hash consistency and edge-case failure handling.
 
 ---
 
