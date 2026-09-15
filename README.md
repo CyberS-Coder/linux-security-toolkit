@@ -16,22 +16,25 @@ A collection of lightweight Bash and Python security utilities built for log par
 linux-security-toolkit/
 │
 ├── README.md
-├── LICENSE
-├── requirements.txt
 ├── .gitignore
 │
 ├── src/
-│   ├── port_scanner.py         # Advanced CLI multithreaded TCP scanner
-│   ├── file_integrity.py       # Advanced FIM with recursive os.walk & ADDED file tracking
-│   └── ssh_analyser.sh         # Refactored bash log parser
+│   ├── fim_v3.py
+│   ├── generate_blacklist.sh
+│   ├── ports_scanner_v4.py
+│   ├── py_scanner.py
+│   └── ssh_analyser_v2.sh
 │
-├── prototypes/                 # Preserves the iterative development history
-│   ├── ports_scanner_v1.py
-│   ├── ports_scanner_v2_interactive.py
-│   └── fim_v1.py
+├── prototypes/
+│   ├── fim.py
+│   ├── fim_v2.py
+│   ├── ports_scanner.py
+│   ├── ports_scanner_v2.py
+│   ├── ports_scanner_v3.py
+│   └── ssh_analyser.sh
 │
 └── tests/
-    └── test_file_integrity.py  # Unit tests for hash verification logic
+    └── test_file_integrity.py
 ```
 
 ---
@@ -40,10 +43,10 @@ linux-security-toolkit/
 
 | Utility | Language | Purpose | Key Technical Mechanics |
 | :--- | :--- | :--- | :--- |
-| `ssh_analyser.sh` | Bash | Parses `systemd` journal logs to extract and sort failed SSH login attempts. | `journalctl`, `awk`, `uniq -c`, `sort -nr` |
-| `generate_candidate_blocklist.sh` | Bash | Isolates IP addresses exceeding a failure threshold and exports a candidate review list. | File redirection `>`, stdout pipelines, root check (`$EUID`) |
-| `port_scanner.py` | Python 3 | Multithreaded TCP port scanner with CLI argument parsing and service banner grabbing. | `argparse`, `ThreadPoolExecutor`, `socket.AF_INET`, `socket.SOCK_STREAM` |
-| `file_integrity.py` | Python 3 | Host File Integrity Monitor (FIM) tracking modifications, deletions, and added files. | `hashlib.sha256`, `os.walk`, `argparse`, JSON baseline serialization |
+| `ssh_analyser_v2.sh` | Bash | Filters failed login attempts dynamically based on a user-defined threshold. | Parameter expansion `${1:-1}`, `awk -v` variable passing |
+| `generate_blacklist.sh` | Bash | Isolates IP addresses exceeding a failure threshold and exports a candidate review list. | File redirection `>`, stdout pipelines, root check (`$EUID`) |
+| `ports_scanner_v4.py` / `py_scanner.py` | Python 3 | Advanced multithreaded TCP port scanners with CLI arguments and banner grabbing. | `argparse`, `ThreadPoolExecutor`, `socket` |
+| `fim_v3.py` | Python 3 | Advanced File Integrity Monitor (FIM) tracking modifications, deletions, and added files. | `hashlib.sha256`, `os.walk`, `argparse`, JSON baseline serialization |
 
 ---
 
@@ -63,22 +66,22 @@ chmod +x src/*.sh src/*.py
 
 ### 1. SSH Log Analysis (Bash)
 ```bash
-sudo ./src/ssh_analyser.sh 5
+sudo ./src/ssh_analyser_v2.sh 5
 ```
 
 ### 2. Multithreaded Port Scanner (Python CLI)
 ```bash
-python3 src/port_scanner.py --target 127.0.0.1 --ports 1-1024 --workers 50
+python3 src/ports_scanner_v4.py --target 127.0.0.1 --ports 1-1024 --workers 50
 ```
 
 ### 3. File Integrity Monitoring (Python CLI)
 * **Generate initial baseline:**
   ```bash
-  python3 src/file_integrity.py --target /etc/ssh/sshd_config --baseline baseline.json --init
+  python3 src/fim_v3.py --target /etc/ssh/sshd_config --baseline baseline.json --init
   ```
 * **Verify system file integrity:**
   ```bash
-  python3 src/file_integrity.py --target /etc/ssh/sshd_config --baseline baseline.json --check
+  python3 src/fim_v3.py --target /etc/ssh/sshd_config --baseline baseline.json --check
   ```
 
 ---
@@ -91,13 +94,13 @@ python3 src/port_scanner.py --target 127.0.0.1 --ports 1-1024 --workers 50
 
 ### Network Reconnaissance
 * **False Positives vs. Vulnerabilities:** Finding an open port or retrieving a banner string confirms an active listening service, but does **not** prove a vulnerability or misconfiguration exists.
-* **Evidence vs. Conclusion:** IP addresses exhibiting excessive authentication failures are flagged as **suspicious candidates for review** (`candidate_blocklist.txt`) rather than definitively malicious, accounting for automated retries or user input errors.
+* **Evidence vs. Conclusion:** IP addresses exhibiting excessive authentication failures are flagged as **suspicious candidates for review** rather than definitively malicious, accounting for automated retries or user input errors.
 
 ---
 
 ## 📈 Engineering Evolution
 
-To demonstrate iterative problem-solving and software maintenance, early prototypes (`fim.py`, `ports_scanner_v1.py`) are archived in `prototypes/`. 
+To demonstrate iterative problem-solving and software maintenance, early prototypes are archived in `prototypes/`. 
 * **Phase 1:** Built baseline functional scripts using procedural logic and interactive prompts.
 * **Phase 2:** Upgraded utilities to support concurrency (`ThreadPoolExecutor`), recursive traversal (`os.walk`), path-sanitized state isolation, and standardized CLI interaction (`argparse`).
 * **Phase 3:** Added automated test coverage (`tests/test_file_integrity.py`) to verify hash consistency and failure handling.
